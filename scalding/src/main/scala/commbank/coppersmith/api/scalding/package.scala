@@ -20,12 +20,14 @@ import commbank.coppersmith.Lift
 package object scalding {
 
   type FeatureJobConfig[S] = commbank.coppersmith.scalding.FeatureJobConfig[S]
+  type FeatureSetExecutions = commbank.coppersmith.scalding.FeatureSetExecutions
+  type Partitions[P] = commbank.coppersmith.scalding.Partitions[P]
   type SimpleFeatureJob = commbank.coppersmith.scalding.SimpleFeatureJob
+  type SimpleFeatureJobOps = commbank.coppersmith.scalding.SimpleFeatureJobOps
   type FeatureValueEnc[T] = commbank.coppersmith.scalding.FeatureValueEnc[T]
 
   val FeatureSetExecutions = commbank.coppersmith.scalding.FeatureSetExecutions
   val FeatureSetExecution = commbank.coppersmith.scalding.FeatureSetExecution
-
   val Partitions = commbank.coppersmith.scalding.Partitions
   val PathComponents = commbank.coppersmith.scalding.Partitions
   val HiveTextSource = commbank.coppersmith.scalding.HiveTextSource
