@@ -26,6 +26,7 @@ package object scalding {
   type SimpleFeatureJobOps = commbank.coppersmith.scalding.SimpleFeatureJobOps
   type FeatureValueEnc[T] = commbank.coppersmith.scalding.FeatureValueEnc[T]
 
+  val DataSourceView = commbank.coppersmith.scalding.DataSourceView
   val FeatureSetExecutions = commbank.coppersmith.scalding.FeatureSetExecutions
   val FeatureSetExecution = commbank.coppersmith.scalding.FeatureSetExecution
   val Partitions = commbank.coppersmith.scalding.Partitions
