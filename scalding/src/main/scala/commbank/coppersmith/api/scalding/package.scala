@@ -21,6 +21,8 @@ package object scalding {
 
   type FeatureJobConfig[S] = commbank.coppersmith.scalding.FeatureJobConfig[S]
   type FeatureSetExecutions = commbank.coppersmith.scalding.FeatureSetExecutions
+  type FeatureSink = commbank.coppersmith.scalding.FeatureSink
+  type FixedSinkPartition[T, P] = commbank.coppersmith.scalding.FixedSinkPartition[T, P]
   type Partitions[P] = commbank.coppersmith.scalding.Partitions[P]
   type SimpleFeatureJob = commbank.coppersmith.scalding.SimpleFeatureJob
   type SimpleFeatureJobOps = commbank.coppersmith.scalding.SimpleFeatureJobOps
