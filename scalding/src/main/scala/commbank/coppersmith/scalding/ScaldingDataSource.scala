@@ -22,7 +22,7 @@ import scalaz.syntax.std.list.ToListOpsFromList
 
 import org.apache.hadoop.fs.Path
 
-import org.slf4j.LoggerFactory
+import org.slf4j.{LoggerFactory, Logger}
 
 import au.com.cba.omnia.ebenezer.scrooge.ParquetScroogeSource
 
@@ -85,6 +85,26 @@ object HiveTextSource {
     HiveTextSource[S](partitions.toPaths(basePath), delimiter)
 }
 
+class CountRows[S : Manifest] {
+  var count = 0
+
+  def logCount() = {
+    println(s"Read ${count} rows of " + implicitly[Manifest[S]].toString)
+    val log = LoggerFactory.getLogger(getClass())
+    log.info(s"Read ${count} rows of " + implicitly[Manifest[S]].toString)
+  }
+
+  def tally(row: S): S = {
+    count = count + 1
+    if(Math.log10(count) - Math.floor(Math.log10(count)) == 0.0) {
+      logCount()
+    }
+    return row
+  }
+
+  override def finalize() = logCount()
+}
+
 case class HiveParquetSource[S <: ThriftStruct : Manifest : TupleConverter : TupleSetter](
   paths: List[Path]
 ) extends ScaldingDataSource[S] {
@@ -92,7 +112,8 @@ case class HiveParquetSource[S <: ThriftStruct : Manifest : TupleConverter : Tup
 
   def load = {
     log.info("Loading from " + paths.mkString(","))
-    ParquetScroogeSource[S](paths.map(_.toString): _*)
+    val source = ParquetScroogeSource[S](paths.map(_.toString): _*)
+    source.map((new CountRows).tally)
   }
 }
 
