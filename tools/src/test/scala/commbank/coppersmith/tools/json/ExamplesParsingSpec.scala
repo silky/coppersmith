@@ -1,0 +1,92 @@
+package commbank.coppersmith.tools.json
+
+import scala.util.Try
+
+import org.specs2._, specification.core._
+
+import argonaut._, Argonaut._
+
+//Parses the json spec examples file to ensure that all examples can be parsed.
+
+object ExamplesParsingSpec extends Specification {
+
+  def verifyFragment(version: Int, json: String) = {
+    val x= json.parse.fold({err => sys.error(err)}, { parsed =>
+      version match {
+        case 0 =>
+          val converted  = MetadataJsonV0.read(parsed)
+          Seq(
+            converted must beSome,
+            MetadataJsonV0.read(parsed) must be_==(MetadataJson.read(parsed)))
+
+        case 1 =>
+          val converted  = MetadataJsonV1.read(parsed)
+          Seq(
+            converted must beSome,
+            MetadataJsonV1.read(parsed) must be_==(MetadataJson.read(parsed)))
+
+        case n => sys.error(s"Unknown version $n")
+      }
+    })
+    x
+  }
+
+
+  lazy val frags = {
+    val source = scala.io.Source.fromURL(
+        getClass.getResource("/METADATA_JSON.markdown"))
+    val markdownFile = try source.mkString finally source.close
+
+    val versionsWithJsons: List[ (Int, List[String])] =
+      extractVersionFragments(markdownFile).map { case (version, section) =>
+      (version, extractJson(section))
+    }
+
+    makeTestFragments(versionsWithJsons)
+  }
+
+  def makeTestFragment(versionWithJson: (Int, List[String])): Fragments = {
+    val (version, jsons) = versionWithJson
+    val description = s"JSON version $version"
+    val allFrags = List(
+        fragmentFactory.text(description),
+        fragmentFactory.break,
+        fragmentFactory.tab
+      ) ++ jsons.zipWithIndex.map { case ( json, i) =>
+        fragmentFactory.example(s"Example $i", verifyFragment(version, json))
+      } ++ List(fragmentFactory.break, fragmentFactory.backtab)
+      Fragments(allFrags:_*)
+    }
+
+  def makeTestFragments(versionsWithJsons: List[(Int, List[String])]) =
+    Fragments.foreach(versionsWithJsons)(makeTestFragment)
+
+  val versionSectionsSplitRegex = "(?m)^---".r
+  val versionTitleRegex = "Version (\\d+)".r
+  private def extractVersionFragments(markdownFile: String): List[(Int, String)] = {
+    val markdownFileSections = versionSectionsSplitRegex.split(markdownFile).toList
+    markdownFileSections.flatMap { section =>
+      for {
+        mtch <- versionTitleRegex.findFirstMatchIn(section)
+        group = mtch.group(1)
+        num <- Try(group.toInt).toOption
+      } yield (num, section)
+    }
+  }
+
+  private def extractJson(markdown: String): List[String] = {
+    val sourceCode = """```json(?s)(.*?)```""".r
+
+    (sourceCode findAllIn markdown).matchData.map {
+    _.group(1)
+  }.toList
+  }
+
+  def is = SpecStructure(
+    SpecHeader(
+      specClass = ExamplesParsingSpec.getClass,
+      title = Some("Examples from documentation should parse correctly\n"))).setFragments(frags)
+
+
+
+}

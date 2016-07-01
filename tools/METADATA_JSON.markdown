@@ -1,0 +1,87 @@
+# Metadata JSON
+
+This document describes the versions JSON representation of the generated metadata.
+As the metadata gets richer, new versions will be added but these are expected to
+be less "agile" than the rest of the coppersmith API, in the sense that we will
+support older versions for a while and we will avoid changing the format without
+good reason.
+
+---
+
+## Version 0
+
+This is the legacy version ad-hoc version that was output by coppersmith prior
+to the design of Version 1. We support it because we have published it for a while
+but we recommend moving to Version 1.
+
+Essentially, entire document is a list of metadata for individual features.
+
+Example:
+
+```json
+[
+    {
+      "namespace":"movies",
+      "name":"feature_name",
+      "description":"Feature description",
+      "source":"scala.Tuple2[java.lang.String,scala.collection.Iterable[scala.Tuple2[commbank.coppersmith.thrift.Movie,scala.Long]]]",
+      "typesConform":true,
+      "valueType":"integral",
+      "featureType":"continuous"
+    },
+    {
+      "namespace":"movies",
+      "name":"feature_name2",
+      "description":"Feature description 2",
+      "source":"commbank.coppersmith.thrift.Movie",
+      "typesConform":true,
+      "valueType":"integral",
+      "featureType":"continuous"
+    }
+]
+```
+
+The fields correspond to the following:
+
+| Field        | Description                                            
+|--------------|--------------------------------------------------------
+| namespace    | The namespace the feature belongs to                   
+| name         | The name of the feature                                
+| description  | Feature description (intended to be consumed by humans)
+| source       | The table or joined tables the data came from. Currently scala class names, likely to change in future versions
+| valueType    | The type of the feature value. Currently integral, decimal, string, date or time
+| featureType  | The statistical type of the feature. Continuous, discrete, nominal, ordinal or instant
+| typesConform | Whether the *valueType* and *featureType* are compatible
+
+---
+
+## Version 1
+
+Version 1 groups features by their feature set and encodes the source in a more
+usable structure than the scala strings in Version 0. A version one document also
+has an `version: 1` attribute in the top-level object. All future versions will
+have a version identifier.
+
+Example:
+
+```json
+{
+    "version": 1,
+    "featureSets": [
+        {
+            "featureSet": "movie-features",
+            "features": [
+                  {
+                      "namespace":"movies",
+                      "name":"feature_name2",
+                      "description":"Feature description 2",
+                      "source":"commbank.coppersmith.thrift.Movie",
+                      "typesConform":true,
+                      "valueType":"integral",
+                      "featureType":"continuous"
+                    }
+            ]
+        }
+    ]
+}
+```

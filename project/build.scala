@@ -188,6 +188,7 @@ object build extends Build {
         )
         ++ Seq(
           fork in Test := true,
+          resources in Test += file("tools/METADATA_JSON.markdown"),
           javaOptions in Test += {
             val files: Seq[File] = (fullClasspath in Compile).value.files
             val sbtClasspath: String = files.map(x => x.getAbsolutePath).mkString(":")
