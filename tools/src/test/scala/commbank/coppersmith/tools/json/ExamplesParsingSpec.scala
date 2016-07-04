@@ -14,16 +14,23 @@ object ExamplesParsingSpec extends Specification {
     val x= json.parse.fold({err => sys.error(err)}, { parsed =>
       version match {
         case 0 =>
-          val converted  = MetadataJsonV0.read(parsed)
+          val converted  = MetadataJsonV0.read(parsed).getOrElse(sys.error("Value expected"))
+          val written = MetadataJsonV0.write(converted)
           Seq(
-            converted must beSome,
-            MetadataJsonV0.read(parsed) must be_==(MetadataJson.read(parsed)))
+            Some(converted) must be_==(MetadataJson.read(parsed)),
+            MetadataJsonV0.write(converted) must be_==(parsed),
+            MetadataJson.readVersion(written) must be_== (None)
+          )
 
         case 1 =>
-          val converted  = MetadataJsonV1.read(parsed)
+          val converted  = MetadataJsonV1.read(parsed).getOrElse(sys.error("Value expected"))
+          val written = MetadataJsonV1.write(converted)
           Seq(
-            converted must beSome,
-            MetadataJsonV1.read(parsed) must be_==(MetadataJson.read(parsed)))
+            Some(converted) must be_==(MetadataJson.read(parsed)),
+            MetadataJsonV1.write(converted) must be_==(parsed),
+
+            MetadataJson.readVersion(written) must be_== (Some(1))
+          )
 
         case n => sys.error(s"Unknown version $n")
       }

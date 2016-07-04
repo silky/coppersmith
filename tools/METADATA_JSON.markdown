@@ -57,8 +57,8 @@ The fields correspond to the following:
 
 ## Version 1
 
-Version 1 groups features by their feature set and encodes the source in a more
-usable structure than the scala strings in Version 0. A version one document also
+Version 1 groups features by their feature set and provides the names of sources in
+a list, rather than having to infer them from the scala type. A version 1 document also
 has an `version: 1` attribute in the top-level object. All future versions will
 have a version identifier.
 
@@ -73,9 +73,10 @@ Example:
             "features": [
                   {
                       "namespace":"movies",
-                      "name":"feature_name2",
-                      "description":"Feature description 2",
-                      "source":"commbank.coppersmith.thrift.Movie",
+                      "name":"COMEDY_MOVIE_AVG_RATING",
+                      "description":"Average rating for comedy movies",
+                      "sourceType":"scala.Tuple2[java.lang.String,scala.collection.Iterable[scala.Tuple2[commbank.coppersmith.thrift.Movie,commbank.coppersmith.thrift.Director]]]",
+                      "sources":["movie", "director"],
                       "typesConform":true,
                       "valueType":"integral",
                       "featureType":"continuous"

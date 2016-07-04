@@ -22,11 +22,13 @@ object MetadataJsonV0 {
     MetadataJsonV0(featureList)
   }
 
+  def write(md: MetadataJsonV0): Json = md.features.asJson
+
   def readFeature(json: Json): Option[FeatureMetadataV0] =
     json.as[FeatureMetadataV0].toOption
 
-  implicit def featureMetadataV0Decode: DecodeJson[FeatureMetadataV0] =
-    jdecode7L(FeatureMetadataV0.apply)(
+  implicit def featureMetadataV0Decode: CodecJson[FeatureMetadataV0] =
+    casecodec7(FeatureMetadataV0.apply, FeatureMetadataV0.unapply)(
       "namespace",
       "name",
       "description",
