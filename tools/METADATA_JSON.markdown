@@ -36,7 +36,11 @@ Example:
       "source":"commbank.coppersmith.thrift.Movie",
       "typesConform":true,
       "valueType":"integral",
-      "featureType":"continuous"
+      "featureType":"continuous",
+      "range": {
+        "start":"1",
+        "end":"10"
+      }
     }
 ]
 ```
@@ -52,6 +56,7 @@ The fields correspond to the following:
 | valueType    | The type of the feature value. Currently integral, decimal, string, date or time
 | featureType  | The statistical type of the feature. Continuous, discrete, nominal, ordinal or instant
 | typesConform | Whether the *valueType* and *featureType* are compatible
+| range        | Optional. The range of values. See description below
 
 ---
 

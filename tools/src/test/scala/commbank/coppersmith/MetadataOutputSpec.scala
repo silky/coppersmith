@@ -119,7 +119,7 @@ object MetadataOutputSpec extends Specification with ScalaCheck with JsonMatcher
     }
     val expectedTypesConform = oConforms.isDefined
 
-    val jsonOutput = MetadataOutput.JsonObject.fn(metadata, oConforms).nospaces
+    val jsonOutput = MetadataOutput.JsonObjectV0.fn(metadata, oConforms).nospaces
     Seq(
       jsonOutput must /("name" -> metadata.name),
       jsonOutput must /("namespace" -> metadata.namespace),
@@ -139,7 +139,7 @@ object MetadataOutputSpec extends Specification with ScalaCheck with JsonMatcher
       Metadata[Customer, Str]("ns", "feature2", "feature2", Discrete, Some(SetRange[Str]("small", "medium", "large")))
     )
 
-    val generatedJson = JsonObject.combiner(metadataList.map(md => JsonObject.fn(md, None)))
+    val generatedJson = JsonObjectV0.combiner(metadataList.map(md => JsonObjectV0.fn(md, None)))
     argonaut.Parse.parse(generatedJson).isRight === true
   }
 }

@@ -48,9 +48,9 @@ object MetadataMain {
       case JsonFormat =>
         val allObjects = metadataSets.toList.flatMap { ms =>
           val metadataConformsSet = ms.metadata.map(m => (m, allConforms.find(c => conforms_?(c, m)))).toList
-          MetadataOutput.metadataObjects(metadataConformsSet, MetadataOutput.JsonObject)
+          MetadataOutput.metadataObjects(metadataConformsSet, MetadataOutput.JsonObjectV0)
         }
-        if (allObjects.isEmpty) "" else MetadataOutput.JsonObject.combiner(allObjects)
+        if (allObjects.isEmpty) "" else MetadataOutput.JsonObjectV0.combiner(allObjects)
     }
     print(output)
   }

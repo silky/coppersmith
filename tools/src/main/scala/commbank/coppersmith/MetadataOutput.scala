@@ -71,7 +71,7 @@ object MetadataOutput {
   }, defaultCombiner)
 
 
-  val JsonObject: MetadataPrinter[Json] = MetadataPrinter((md, oConforms) => {
+  val JsonObjectV0: MetadataPrinter[Json] = MetadataPrinter((md, oConforms) => {
     val json = Json(
       "name" -> jString(md.name),
       "namespace" -> jString(md.namespace),
