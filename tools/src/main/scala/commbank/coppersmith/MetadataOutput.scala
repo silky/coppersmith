@@ -14,12 +14,11 @@
 
 package commbank.coppersmith
 
-import commbank.coppersmith.Feature.Value
-import Feature._
-import Metadata._
-
-import argonaut._, Argonaut._
+import argonaut.Argonaut._
+import argonaut._
+import commbank.coppersmith.Feature.Metadata._
 import commbank.coppersmith.Feature.Value._
+import commbank.coppersmith.Feature.{Value, _}
 
 object MetadataOutput {
   case class MetadataPrinter[O] (

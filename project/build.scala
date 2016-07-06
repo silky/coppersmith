@@ -181,10 +181,12 @@ object build extends Build {
       Defaults.coreDefaultSettings
         ++ uniformDependencySettings
         ++ uniform.project("coppersmith-tools", "commbank.coppersmith.tools")
-        ++ Seq(libraryDependencies ++= Seq(
+        ++ Seq(
+            libraryDependencies ++= Seq(
              "io.github.lukehutch" % "fast-classpath-scanner" % "1.9.7",
              "org.specs2"         %% "specs2-matcher-extra"   % versions.specs % "test"
-           )
+           ),
+         libraryDependencies ++= depend.testing(configuration = "test")
         )
         ++ Seq(
           fork in Test := true,
@@ -195,5 +197,5 @@ object build extends Build {
             s"-Dsbt-classpath=$sbtClasspath"
           }
         )
-  ).dependsOn(core)
+  ).dependsOn(core % "compile->compile;test->test")
 }

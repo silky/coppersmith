@@ -15,17 +15,13 @@
 package commbank.coppersmith
 
 import argonaut.Argonaut._
-
-import org.scalacheck.{Arbitrary, Prop}, Arbitrary._, Prop._
-
-import org.specs2.matcher.{Matcher, JsonMatchers}
-import org.specs2.{ScalaCheck, Specification}
-
 import commbank.coppersmith.Feature.Type._
 import commbank.coppersmith.Feature.Value._
 import commbank.coppersmith.Feature._
 import commbank.coppersmith.test.thrift.Customer
-
+import org.specs2._
+import org.scalacheck._, Prop.forAll, Arbitrary.arbitrary
+import org.specs2.matcher.{JsonMatchers, Matcher}
 import Arbitraries._
 
 object MetadataOutputSpec extends Specification with ScalaCheck with JsonMatchers { def is = s2"""
