@@ -41,6 +41,16 @@ Example:
         "start":"1",
         "end":"10"
       }
+     },
+     {
+       "namespace":"movies",
+       "name":"feature_name3",
+       "description":"Feature description 3",
+       "source":"commbank.coppersmith.thrift.Movie",
+       "typesConform":true,
+       "valueType":"string",
+       "featureType":"nominal",
+       "range": ["horror", "comedy"]
     }
 ]
 ```

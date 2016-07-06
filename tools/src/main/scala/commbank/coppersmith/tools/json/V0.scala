@@ -3,6 +3,8 @@ package commbank.coppersmith.tools.json
 import argonaut._, Argonaut._
 import scalaz._, Scalaz._
 
+import Util.stripNullValuesFromObjects
+
 case class MetadataJsonV0(features: List[FeatureMetadataV0]) extends MetadataJson {
   val version = 0
 }
@@ -25,28 +27,11 @@ case class NumericRangeV0(start: String, end: String) extends RangeV0
 case class SetRangeV0(elements: List[String]) extends RangeV0
 
 object CodecsV0 {
-  // The macro-derived encoder outputs nulls. We don't want to
-  private def stripNullValuesFromObjects[A](enc: EncodeJson[A]): EncodeJson[A] = new EncodeJson[A] {
-    def encode(a: A): Json = {
-      val obj = enc.encode(a)
-      obj.withObject { o =>
-        val objMap = o.toMap
-        val newFields: List[(JsonField, Json)] = o.fields.flatMap { f=>
-          val v = objMap(f)
-          if (v.isNull) None else Some(f -> v)
-        }
-        JsonObject.from(newFields)
-      }
-    }
-  }
-
   implicit lazy val featureMetadataV0Codec: CodecJson[FeatureMetadataV0] =
     CodecJson.derived(stripNullValuesFromObjects(EncodeJson.derive), DecodeJson.derive)
 
   lazy val numericRangeV0Codec = CodecJson.derive[NumericRangeV0].map(it => it : RangeV0)
 
-
-  implicitly[Applicative[DecodeResult]]
 
   implicit lazy val rangeV0Decode: DecodeJson[RangeV0] = DecodeJson(
     c => c.focus.arrayOrObject(

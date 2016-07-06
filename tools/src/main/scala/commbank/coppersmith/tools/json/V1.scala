@@ -2,11 +2,15 @@ package commbank.coppersmith.tools.json
 
 import argonaut._, Argonaut._
 
+import MetadataJsonV1._
+import commbank.coppersmith.tools.json.Util._
+
 case class MetadataJsonV1(version: Int, featureSets: List[FeatureSetMetadataV1]) extends MetadataJson {
   require(version == 1)
 }
 
 case class FeatureSetMetadataV1(featureSet: String, features: List[FeatureMetadataV1])
+
 
 case class FeatureMetadataV1 (
                                namespace: String,
@@ -16,9 +20,9 @@ case class FeatureMetadataV1 (
                                sources: List[String],
                                typesConform: Boolean,
                                valueType: String,
-                               featureType: String)
+                               featureType: String, range: Option[RangeV1])
 
-object MetadataJsonV1 {
+object CodecsV1 {
   implicit lazy val decodeMetadataJsonV1: CodecJson[MetadataJsonV1] =
     casecodec2(MetadataJsonV1.apply, MetadataJsonV1.unapply)("version", "featureSets")
 
@@ -26,15 +30,16 @@ object MetadataJsonV1 {
     casecodec2(FeatureSetMetadataV1.apply, FeatureSetMetadataV1.unapply)("featureSet", "features")
 
   implicit lazy val decodeFeatureMetadataV1: CodecJson[FeatureMetadataV1] =
-    casecodec8(FeatureMetadataV1.apply, FeatureMetadataV1.unapply)(
-      "namespace",
-      "name",
-      "description",
-      "sourceType",
-      "sources",
-      "typesConform",
-      "valueType",
-      "featureType")
+    CodecJson.derived(stripNullValuesFromObjects(EncodeJson.derive), DecodeJson.derive)
+
+  implicit lazy val rangeV1Decode = CodecsV0.rangeV0Decode
+  implicit lazy val rangeV1Encode = CodecsV0.rangeV0Encode
+}
+
+object MetadataJsonV1 {
+  type RangeV1 = RangeV0
+
+  import CodecsV1._
 
   def read(json: Json): Option[MetadataJsonV1] = json.as[MetadataJsonV1].toOption
   def write(md: MetadataJsonV1): Json = md.asJson
