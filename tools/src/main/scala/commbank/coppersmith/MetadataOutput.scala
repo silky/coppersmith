@@ -17,8 +17,6 @@ package commbank.coppersmith
 import argonaut._
 import commbank.coppersmith.Feature.Conforms._
 
-import scalaz._, Scalaz._
-
 import commbank.coppersmith.Feature.Metadata._
 import commbank.coppersmith.Feature.Value._
 import commbank.coppersmith.Feature.{Value, _}
@@ -54,7 +52,7 @@ object MetadataOutput {
   object Json0 extends MetadataOut {
     type OutType = Json
 
-    val singleItem = (md: Metadata[_, Value], oConforms: Option[Conforms[_, _]]) =>
+    val singleItem = (md: Metadata[_, Value], oConforms: Option[Conforms[_, _]]) => {
       FeatureMetadataV0(
         namespace = md.namespace,
         name = md.name,
@@ -64,6 +62,7 @@ object MetadataOutput {
         valueType = genericValueTypeToString(md.valueType),
         featureType = genericFeatureTypeToString(md.featureType),
         range = genericRangeToJson(md.valueRange))
+    }
 
 
     def doOutput(metadataSets: List[MetadataSet[Any]], allConforms: Set[Conforms[Type,Value]]) = {
@@ -107,7 +106,7 @@ object MetadataOutput {
   })
 
   private def genericRangeToJson(r: Option[Value.Range[Value]]): Option[RangeV0] = r match {
-    case Some(Value.MinMaxRange(min, max)) => ^(genericValueToString(min), genericValueToString(max))(NumericRangeV0)
+    case Some(Value.MinMaxRange(min, max)) => Some(NumericRangeV0(genericValueToString(min), genericValueToString(max)))
     case Some(Value.SetRange(set))         => Some(SetRangeV0(set.map(genericValueToString).toList))
     case None                              => None
   }

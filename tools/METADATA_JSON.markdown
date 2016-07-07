@@ -38,8 +38,8 @@ Example:
       "valueType":"integral",
       "featureType":"continuous",
       "range": {
-        "start":"1",
-        "end":"10"
+        "min":"1",
+        "max":"10"
       }
      },
      {

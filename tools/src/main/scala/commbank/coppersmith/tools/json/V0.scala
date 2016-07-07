@@ -22,7 +22,7 @@ case class FeatureMetadataV0 (
 sealed trait RangeV0
 //These are strings because we want to represent 64-bit numbers,
 // some of which are not representable by JSON
-case class NumericRangeV0(start: String, end: String) extends RangeV0
+case class NumericRangeV0(min: Option[String], max: Option[String]) extends RangeV0
 
 case class SetRangeV0(elements: List[Option[String]]) extends RangeV0
 
@@ -42,9 +42,9 @@ object CodecsV0 {
   )
 
   implicit lazy val rangeV0Encode: EncodeJson[RangeV0] = EncodeJson {
-    case NumericRangeV0(start, end) => Json.obj(
-      "start" -> jString(start),
-      "end" -> jString(end)
+    case NumericRangeV0(min, max) => Json.obj(
+      "min" -> min.fold(jNull)(jString),
+      "max" -> max.fold(jNull)(jString)
     )
     case SetRangeV0(els) => Json.array(els.map (el => el.fold(jNull)(jString)): _*)
   }
