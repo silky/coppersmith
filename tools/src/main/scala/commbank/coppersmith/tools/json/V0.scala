@@ -24,7 +24,7 @@ sealed trait RangeV0
 // some of which are not representable by JSON
 case class NumericRangeV0(start: String, end: String) extends RangeV0
 
-case class SetRangeV0(elements: List[String]) extends RangeV0
+case class SetRangeV0(elements: List[Option[String]]) extends RangeV0
 
 object CodecsV0 {
   implicit lazy val featureMetadataV0Codec: CodecJson[FeatureMetadataV0] =
@@ -36,7 +36,7 @@ object CodecsV0 {
   implicit lazy val rangeV0Decode: DecodeJson[RangeV0] = DecodeJson(
     c => c.focus.arrayOrObject(
       DecodeResult.fail("Either an array or JSON object expected", c.history),
-      arr => arr.map((jsn: Json) => jsn.as[String]).sequenceU.map(SetRangeV0.apply),
+      arr => arr.map((jsn: Json) => jsn.as[Option[String]]).sequenceU.map(SetRangeV0.apply),
       obj =>  jObject(obj).as[RangeV0](numericRangeV0Codec)
     )
   )
@@ -46,7 +46,7 @@ object CodecsV0 {
       "start" -> jString(start),
       "end" -> jString(end)
     )
-    case SetRangeV0(els) => Json.array(els.map(jString): _*)
+    case SetRangeV0(els) => Json.array(els.map (el => el.fold(jNull)(jString)): _*)
   }
 }
 

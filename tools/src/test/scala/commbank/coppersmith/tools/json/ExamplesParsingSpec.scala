@@ -7,6 +7,7 @@ import org.specs2._, specification.core._
 import argonaut._, Argonaut._
 
 
+
 //Parses the json spec examples file to ensure that all examples can be parsed.
 
 object ExamplesParsingSpec extends Specification {

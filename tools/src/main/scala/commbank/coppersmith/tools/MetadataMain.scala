@@ -15,7 +15,7 @@
 package commbank.coppersmith.tools
 
 import commbank.coppersmith.{MetadataOutput, MetadataSet}
-import commbank.coppersmith.Feature.Conforms, Conforms.conforms_?
+import commbank.coppersmith.Feature.{Value, Type, Conforms}, Conforms.conforms_?
 import commbank.coppersmith.tools.util.ObjectFinder
 
 object MetadataMain {
@@ -31,26 +31,23 @@ object MetadataMain {
       case _                    => println("Invalid input"); sys.exit(1)
     }
 
-    val metadataSets = ObjectFinder.findObjects[MetadataSet[_]](packagge, "commbank.coppersmith")
+    val metadataSets = ObjectFinder.findObjects[MetadataSet[Any]](packagge, "commbank.coppersmith").toList
 
     val allConforms =
-      ObjectFinder.findObjects[Conforms[_, _]](args(0), "commbank.coppersmith", "au.com.cba.omnia")
+      ObjectFinder.findObjects[Conforms[Type, Value]](args(0), "commbank.coppersmith", "au.com.cba.omnia")
 
     // The repetition here is regrettable but getting the types without statically
     //knowing the formatter is really awkward
 
     val output: String = format match {
       case PsvFormat =>
-        MetadataOutput.Psv.combiner(metadataSets.toList.flatMap { ms =>
-          val metadataConformsSet = ms.metadata.map(m => (m, allConforms.find(c => conforms_?(c, m)))).toList
-          MetadataOutput.metadataObjects(metadataConformsSet, MetadataOutput.Psv)
-        })
+        MetadataOutput.Psv.stringify(MetadataOutput.Psv.doOutput(metadataSets, allConforms))
       case JsonFormat =>
-        val allObjects = metadataSets.toList.flatMap { ms =>
-          val metadataConformsSet = ms.metadata.map(m => (m, allConforms.find(c => conforms_?(c, m)))).toList
-          MetadataOutput.metadataObjects(metadataConformsSet, MetadataOutput.JsonObjectV0)
+        if (!metadataSets.isEmpty) {
+          MetadataOutput.Json0.stringify(MetadataOutput.Json0.doOutput(metadataSets, allConforms))
+        } else {
+          ""
         }
-        if (allObjects.isEmpty) "" else MetadataOutput.JsonObjectV0.combiner(allObjects)
     }
     print(output)
   }

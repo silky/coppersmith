@@ -23,25 +23,25 @@ import org.specs2._
 import org.scalacheck._, Prop.forAll, Arbitrary.arbitrary
 import org.specs2.matcher.{JsonMatchers, Matcher}
 import Arbitraries._
+import commbank.coppersmith.tools.json.CodecsV0._
 
 object MetadataOutputSpec extends Specification with ScalaCheck with JsonMatchers { def is = s2"""
   GenericValueToString creates expected values $genericValueToString
   Psv creates expected metadata $psv
   Json creates expected metadata $json
-  List produces valid json $listProducesValidJson
 """
 
   def genericValueToString = forAll { (v: Value) => {
-    val expected = (v match {
-      case Integral(v)      => v.map(i  => jString(i.toString))
-      case Decimal(v)       => v.map(bd => jString(bd.toString))
-      case FloatingPoint(v) => v.map(fp => jString(fp.toString))
-      case Str(v)           => v.map(jString)
-      case Bool(v)          => v.map(b  => jString(b.toString))
-      case Date(v)          => v.map(d  => jString(d.toString))
-      case Time(v)          => v.map(t  => jString(t.toString))
-    }).getOrElse(jNull)
-    MetadataOutput.genericValueToJson(v) must_== expected
+    val expected: Option[String] = (v match {
+      case Integral(v)      => v.map(_.toString)
+      case Decimal(v)       => v.map(_.toString)
+      case FloatingPoint(v) => v.map(_.toString)
+      case Str(v)           => v
+      case Bool(v)          => v.map(_.toString)
+      case Date(v)          => v.map(_.toString)
+      case Time(v)          => v.map(_.toString)
+    })
+    MetadataOutput.genericValueToString(v) must_== expected
   }}
 
   def psv = forAll { (namespace: Namespace, name: Name, desc: Description, fType: Type, value: Value) => {
@@ -61,7 +61,7 @@ object MetadataOutputSpec extends Specification with ScalaCheck with JsonMatcher
       case Instant        => "datetime"
     }
 
-    val psvMetadata = MetadataOutput.Psv.fn(metadata, None)
+    val psvMetadata = MetadataOutput.Psv.singleItem(metadata, None)
 
     psvMetadata must_==
       s"${namespace.toLowerCase}.${name.toLowerCase}|$expectedValueType|$expectedFeatureType"
@@ -96,7 +96,7 @@ object MetadataOutputSpec extends Specification with ScalaCheck with JsonMatcher
     val expectedFeatureType = fType.toString.toLowerCase
 
     def expectedValue(v: Value): String = {
-      MetadataOutput.genericValueToJson(v).fold[String]("null", _.toString, _.toString, identity, _.toString, _.toString)
+      MetadataOutput.genericValueToString(v).getOrElse("null")
     }
 
     val matchExpectedRange: Matcher[String] = range match {
@@ -119,7 +119,7 @@ object MetadataOutputSpec extends Specification with ScalaCheck with JsonMatcher
     }
     val expectedTypesConform = oConforms.isDefined
 
-    val jsonOutput = MetadataOutput.JsonObjectV0.fn(metadata, oConforms).nospaces
+    val jsonOutput = MetadataOutput.Json0.singleItem(metadata, oConforms).asJson.nospaces
     Seq(
       jsonOutput must /("name" -> metadata.name),
       jsonOutput must /("namespace" -> metadata.namespace),
