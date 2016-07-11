@@ -91,7 +91,6 @@ Example:
                       "name":"COMEDY_MOVIE_AVG_RATING",
                       "description":"Average rating for comedy movies",
                       "sourceType":"scala.Tuple2[java.lang.String,scala.collection.Iterable[scala.Tuple2[commbank.coppersmith.thrift.Movie,commbank.coppersmith.thrift.Director]]]",
-                      "sources":["movie", "director"],
                       "typesConform":true,
                       "valueType":"integral",
                       "featureType":"continuous"

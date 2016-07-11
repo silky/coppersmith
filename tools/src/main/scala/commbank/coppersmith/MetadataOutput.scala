@@ -85,7 +85,6 @@ object MetadataOutput {
         name = md.name,
         description = md.description,
         sourceType = md.sourceType.toString,
-        sources = List(),
         typesConform = oConforms.isDefined,
         valueType = genericValueTypeToString(md.valueType),
         featureType = genericFeatureTypeToString(md.featureType),
@@ -95,7 +94,7 @@ object MetadataOutput {
 
     def doOutput(metadataSets: List[MetadataSet[Any]], allConforms: Set[Conforms[Type,Value]]) = {
       val setJsons = metadataSets.map { ms =>
-        val name: String = ??? // We cannot start outputting V1 until we know the names
+        val name: String = ms.name
         val metadataWithConforms: List[(Metadata[Any, Value], Option[Conforms[Type, Value]])] = ms.metadata.map(m => (m, allConforms.find(c => conforms_?(c, m)))).toList
         FeatureSetMetadataV1(name, metadataWithConforms.map (singleItem.tupled))
       }

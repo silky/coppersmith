@@ -17,7 +17,6 @@ case class FeatureMetadataV1 (
                                name:String,
                                description: String,
                                sourceType: String,
-                               sources: List[String],
                                typesConform: Boolean,
                                valueType: String,
                                featureType: String, range: Option[RangeV1])
