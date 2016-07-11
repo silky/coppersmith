@@ -1,4 +1,4 @@
-# Metadata JSON
+s# Metadata JSON
 
 This document describes the versions JSON representation of the generated metadata.
 As the metadata gets richer, new versions will be added but these are expected to

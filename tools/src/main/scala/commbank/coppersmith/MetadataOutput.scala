@@ -75,6 +75,36 @@ object MetadataOutput {
     def stringify(o: Json) = o.spaces2
   }
 
+
+  object Json1 extends MetadataOut {
+    type OutType = Json
+
+    val singleItem = (md: Metadata[_, Value], oConforms: Option[Conforms[_, _]]) => {
+      FeatureMetadataV1(
+        namespace = md.namespace,
+        name = md.name,
+        description = md.description,
+        sourceType = md.sourceType.toString,
+        sources = List(),
+        typesConform = oConforms.isDefined,
+        valueType = genericValueTypeToString(md.valueType),
+        featureType = genericFeatureTypeToString(md.featureType),
+        range = genericRangeToJson(md.valueRange))
+    }
+
+
+    def doOutput(metadataSets: List[MetadataSet[Any]], allConforms: Set[Conforms[Type,Value]]) = {
+      val setJsons = metadataSets.map { ms =>
+        val name: String = ??? // We cannot start outputting V1 until we know the names
+        val metadataWithConforms: List[(Metadata[Any, Value], Option[Conforms[Type, Value]])] = ms.metadata.map(m => (m, allConforms.find(c => conforms_?(c, m)))).toList
+        FeatureSetMetadataV1(name, metadataWithConforms.map (singleItem.tupled))
+      }
+      MetadataJsonV1.write(MetadataJsonV1(1, setJsons))
+    }
+
+    def stringify(o: Json) = o.spaces2
+  }
+
   private def psvValueTypeToString(v: ValueType) = v match {
     case ValueType.IntegralType      => "int"
     case ValueType.DecimalType       => "bigdecimal"
