@@ -29,6 +29,7 @@ package object api extends GeneratedJoinTypeInstances with SourceBinderInstances
       commbank.coppersmith.FeatureBuilderSource.fromCFS(fs)
   }
 
+  type BoundFeatureSource[S, P[_]] = commbank.coppersmith.BoundFeatureSource[S, P]
   type Feature[S, +V <: Value] = commbank.coppersmith.Feature[S, V]
   type FeatureSet[S] = commbank.coppersmith.FeatureSet[S]
   type FeatureSetWithTime[S] = commbank.coppersmith.FeatureSetWithTime[S]

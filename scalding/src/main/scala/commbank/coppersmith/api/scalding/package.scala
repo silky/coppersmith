@@ -20,6 +20,7 @@ import commbank.coppersmith.Lift
 package object scalding {
 
   type FeatureJobConfig[S] = commbank.coppersmith.scalding.FeatureJobConfig[S]
+  type FeatureSetExecution = commbank.coppersmith.scalding.FeatureSetExecution
   type FeatureSetExecutions = commbank.coppersmith.scalding.FeatureSetExecutions
   type FeatureSink = commbank.coppersmith.scalding.FeatureSink
   type FixedSinkPartition[T, P] = commbank.coppersmith.scalding.FixedSinkPartition[T, P]
