@@ -368,7 +368,7 @@ package commbank.coppersmith.examples.userguide
 import commbank.coppersmith.api._, Coppersmith._
 import commbank.coppersmith.examples.thrift.User
 
-object FluentUserFeatures extends FeatureSetWithTime[User] {
+object FluentUserFeatures extends FeatureSet[User] {
   val namespace          = "userguide.examples"
   def entity(user: User) = user.id
 
@@ -401,7 +401,7 @@ object FluentUserFeatures extends FeatureSetWithTime[User] {
 }
 ```
 
-The above example uses `FeatureSetWithTime`, which, by default, uses the feature
+The above example uses `FeatureSet`, which, by default, uses the feature
 context to give us the feature time. This implementation can be overridden like so:
 `def time(user: User, ctx: FeatureContext) = DateTime.parse(user.DOB).getMillis`
 Most of the time however, the default implementation is the correct thing to do.
@@ -571,7 +571,7 @@ package commbank.coppersmith.examples.userguide
 import commbank.coppersmith.api._, Coppersmith._
 import commbank.coppersmith.examples.thrift.Movie
 
-object NonAggregationFeatures extends FeatureSetWithTime[Movie] {
+object NonAggregationFeatures extends FeatureSet[Movie] {
   val namespace            = "userguide.examples"
   def entity(movie: Movie) = movie.id
 
@@ -683,7 +683,7 @@ import commbank.coppersmith.examples.thrift.Movie
 
 import Implicits.RichMovie
 
-object MovieReleaseFeatures extends FeatureSetWithTime[Movie] {
+object MovieReleaseFeatures extends FeatureSet[Movie] {
   val namespace            = "userguide.examples"
   def entity(movie: Movie) = movie.id
 
@@ -717,7 +717,7 @@ import commbank.coppersmith.examples.thrift.Movie
 
 import Implicits.RichMovie
 
-object HollywoodGoldenEraMovieFeatures extends FeatureSetWithTime[Movie] {
+object HollywoodGoldenEraMovieFeatures extends FeatureSet[Movie] {
   val namespace              = "userguide.examples"
   def entity(cust: Movie)    = cust.id
 
@@ -990,7 +990,7 @@ import commbank.coppersmith.examples.thrift.Movie
 
 import Implicits.RichMovie
 
-object SourceViewFeatures extends FeatureSetWithTime[Movie] {
+object SourceViewFeatures extends FeatureSet[Movie] {
   val namespace            = "userguide.examples"
   def entity(movie: Movie) = movie.id
 
@@ -1179,7 +1179,7 @@ import commbank.coppersmith.examples.thrift.Movie
 import Implicits.RichMovie
 
 // The context, a DateTime in this case, forms part of the FeatureSource
-object ContextFeatures extends FeatureSetWithTime[(Movie, DateTime)] {
+object ContextFeatures extends FeatureSet[(Movie, DateTime)] {
   val namespace                    = "userguide.examples"
   def entity(s: (Movie, DateTime)) = s._1.id
 
