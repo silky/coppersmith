@@ -65,9 +65,12 @@ object MetadataOutput {
     }
 
 
-    def doOutput(metadataSets: List[MetadataSet[Any]], allConforms: Set[Conforms[Type,Value]]) = {
-
-      val metadataWithConforms: List[(Metadata[Any, Value], Option[Conforms[Type, Value]])] = metadataSets.flatMap(_.metadata).map(m => (m, allConforms.find(c => conforms_?(c, m)))).toList
+    def doOutput(metadataSets: List[MetadataSet[Any]],
+                 allConforms: Set[Conforms[Type,Value]]): Json = {
+      val metadataWithConforms: List[(Metadata[Any, Value], Option[Conforms[Type, Value]])] =
+        metadataSets.flatMap(_.metadata).map { m =>
+          (m, allConforms.find(c => conforms_?(c, m)))
+        }.toList
       val features = metadataWithConforms.map (singleItem.tupled)
       MetadataJsonV0.write(MetadataJsonV0(features))
     }
@@ -134,10 +137,8 @@ object MetadataOutput {
     case Bool(v)          => v.map(_.toString)	
   })
 
-  private def genericRangeToJson(r: Option[Value.Range[Value]]): Option[RangeV0] = r match {
-    case Some(Value.MinMaxRange(min, max)) => Some(NumericRangeV0(genericValueToString(min), genericValueToString(max)))
-    case Some(Value.SetRange(set))         => Some(SetRangeV0(set.map(genericValueToString).toList))
-    case None                              => None
+  private def genericRangeToJson(r: Option[Value.Range[Value]]): Option[RangeV0] = r map {
+    case Value.MinMaxRange(min, max) => NumericRangeV0(genericValueToString(min), genericValueToString(max))
+    case Value.SetRange(set)         => SetRangeV0(set.map(genericValueToString).toList)
   }
-
 }

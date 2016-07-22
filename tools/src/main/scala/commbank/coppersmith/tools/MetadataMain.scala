@@ -24,11 +24,13 @@ object MetadataMain {
   case object JsonFormat extends FormatType
 
   def main(args:Array[String]) = {
-    val (format, packagge) = args.take(2) match {
-      case Array("--psv", pkg)  => ( PsvFormat, pkg)
-      case Array("--json", pkg) => (JsonFormat, pkg)
-      case Array(pkg)           => (JsonFormat, pkg)
-      case _                    => println("Invalid input"); sys.exit(1)
+    val (format, packagge, version) = args.take(2) match {
+      case Array("--psv", pkg)                  => ( PsvFormat, pkg, 0)
+      case Array("--json", pkg)                 => (JsonFormat, pkg, 0)
+      case Array("--json", "--version", v, pkg) => (JsonFormat, pkg, v.toInt)
+      case Array("--version", v, pkg)           => (JsonFormat, pkg, v.toInt)
+      case Array(pkg)                           => (JsonFormat, pkg, 0)
+      case _                                    => println("Invalid input"); sys.exit(1)
     }
 
     val metadataSets = ObjectFinder.findObjects[MetadataSet[Any]](packagge, "commbank.coppersmith").toList
@@ -37,14 +39,20 @@ object MetadataMain {
       ObjectFinder.findObjects[Conforms[Type, Value]](args(0), "commbank.coppersmith", "au.com.cba.omnia")
 
     // The repetition here is regrettable but getting the types without statically
-    //knowing the formatter is really awkward
+    // knowing the formatter is really awkward
 
     val output: String = format match {
       case PsvFormat =>
         MetadataOutput.Psv.stringify(MetadataOutput.Psv.doOutput(metadataSets, allConforms))
       case JsonFormat =>
         if (!metadataSets.isEmpty) {
-          MetadataOutput.Json0.stringify(MetadataOutput.Json0.doOutput(metadataSets, allConforms))
+          if (version == 0) {
+            MetadataOutput.Json0.stringify(MetadataOutput.Json0.doOutput(metadataSets, allConforms))
+          } else if (version == 1) {
+            MetadataOutput.Json1.stringify(MetadataOutput.Json0.doOutput(metadataSets, allConforms))
+          } else {
+            sys.error("Invalid JSON version received")
+          }
         } else {
           ""
         }

@@ -185,10 +185,7 @@ object build extends Build {
             libraryDependencies ++= Seq(
              "io.github.lukehutch" % "fast-classpath-scanner" % "1.9.7",
              "org.specs2"         %% "specs2-matcher-extra"   % versions.specs % "test"
-           ),
-         libraryDependencies ++= depend.testing(configuration = "test")
-        )
-        ++ Seq(
+           ) ++ depend.testing(configuration = "test"),
           fork in Test := true,
           resources in Test += file("tools/METADATA_JSON.markdown"),
           javaOptions in Test += {

@@ -23,7 +23,7 @@ import org.specs2._
 import org.scalacheck._, Prop.forAll, Arbitrary.arbitrary
 import org.specs2.matcher.{JsonMatchers, Matcher}
 import Arbitraries._
-import commbank.coppersmith.tools.json.CodecsV0._
+import commbank.coppersmith.tools.json._, CodecsV0._
 
 object MetadataOutputSpec extends Specification with ScalaCheck with JsonMatchers { def is = s2"""
   GenericValueToString creates expected values $genericValueToString
@@ -131,15 +131,4 @@ object MetadataOutputSpec extends Specification with ScalaCheck with JsonMatcher
       jsonOutput must matchExpectedRange
     )
   }}
-
-  def listProducesValidJson = {
-    import MetadataOutput._
-    val metadataList = List(
-      Metadata[Customer, Integral]("ns", "feature1", "feature1", Discrete, Some(MinMaxRange[Integral](1, 2))),
-      Metadata[Customer, Str]("ns", "feature2", "feature2", Discrete, Some(SetRange[Str]("small", "medium", "large")))
-    )
-
-    val generatedJson = JsonObjectV0.combiner(metadataList.map(md => JsonObjectV0.fn(md, None)))
-    argonaut.Parse.parse(generatedJson).isRight === true
-  }
 }

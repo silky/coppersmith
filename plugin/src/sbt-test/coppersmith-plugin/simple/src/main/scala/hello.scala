@@ -43,12 +43,11 @@ object FluentMovieFeatures2 extends FeatureSetWithTime[Movie] {
   val namespace            = "plugin.examples"
   def entity(movie: Movie) = movie.id
 
-  val source      = From[Movie]()  // FeatureSource (see above)
-  val select      = source.featureSetBuilder(namespace, entity)
+  val source = From[Movie]()  // FeatureSource (see above)
+  val select = source.featureSetBuilder(namespace, entity)
+  val format = DateTimeFormat.forPattern("dd-MMM-yyyy").withLocale(Locale.ENGLISH)
 
-  val format      = DateTimeFormat.forPattern("dd-MMM-yyyy").withLocale(Locale.ENGLISH)
-
-  val movieReleaseDay2  = select(_.releaseDate)
+  val movieReleaseDay2 = select(_.releaseDate)
     .asFeature(Nominal, "MOVIE_RELEASE_DAY2", "Day on which the movie was released - take 2")
 
 

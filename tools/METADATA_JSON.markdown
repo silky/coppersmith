@@ -1,6 +1,6 @@
-s# Metadata JSON
+# Metadata JSON
 
-This document describes the versions JSON representation of the generated metadata.
+This document describes the different JSON representations of the generated metadata.
 As the metadata gets richer, new versions will be added but these are expected to
 be less "agile" than the rest of the coppersmith API, in the sense that we will
 support older versions for a while and we will avoid changing the format without
@@ -67,6 +67,23 @@ The fields correspond to the following:
 | featureType  | The statistical type of the feature. Continuous, discrete, nominal, ordinal or instant
 | typesConform | Whether the *valueType* and *featureType* are compatible
 | range        | Optional. The range of values. See description below
+
+
+### Ranges
+
+Numeric ranges are represented objects containing `max` and `min` fields. The field
+values are strings, in order to capture a broader range of representable values.
+Specifically, `Long` values are not all exactly representable in JSON, but we want
+to express them exactly. Example:
+
+```
+{min: "1", max:"2000"}
+```
+
+Set ranges are represented as JSON arrays of allowed values. Example:
+```
+["horror", "comedy"]
+```
 
 ---
 

@@ -1,3 +1,17 @@
+//
+// Copyright 2016 Commonwealth Bank of Australia
+//
+//    Licensed under the Apache License, Version 2.0 (the "License");
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+//        http://www.apache.org/licenses/LICENSE-2.0
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an "AS IS" BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
+//
+
 package commbank.coppersmith.tools.json
 
 import argonaut._, Argonaut._
@@ -9,9 +23,9 @@ case class MetadataJsonV0(features: List[FeatureMetadataV0]) extends MetadataJso
   val version = 0
 }
 
-case class FeatureMetadataV0 (
+case class FeatureMetadataV0(
   namespace: String,
-  name:String,
+  name: String,
   description: String,
   source: String,
   typesConform: Boolean,
@@ -20,7 +34,7 @@ case class FeatureMetadataV0 (
   range: Option[RangeV0])
 
 sealed trait RangeV0
-//These are strings because we want to represent 64-bit numbers,
+// These are strings because we want to represent 64-bit numbers,
 // some of which are not representable by JSON
 case class NumericRangeV0(min: Option[String], max: Option[String]) extends RangeV0
 
@@ -28,7 +42,7 @@ case class SetRangeV0(elements: List[Option[String]]) extends RangeV0
 
 object CodecsV0 {
   implicit lazy val featureMetadataV0Codec: CodecJson[FeatureMetadataV0] =
-    CodecJson.derived(stripNullValuesFromObjects(EncodeJson.derive), DecodeJson.derive)
+    CodecJson.derived(stripNullValuesFromObjects(EncodeJson.derive)("range"), DecodeJson.derive)
 
   lazy val numericRangeV0Codec = CodecJson.derive[NumericRangeV0].map(it => it : RangeV0)
 
@@ -37,7 +51,7 @@ object CodecsV0 {
     c => c.focus.arrayOrObject(
       DecodeResult.fail("Either an array or JSON object expected", c.history),
       arr => arr.map((jsn: Json) => jsn.as[Option[String]]).sequenceU.map(SetRangeV0.apply),
-      obj =>  jObject(obj).as[RangeV0](numericRangeV0Codec)
+      obj => jObject(obj).as[RangeV0](numericRangeV0Codec)
     )
   )
 
@@ -61,6 +75,4 @@ object MetadataJsonV0 {
   def write(md: MetadataJsonV0): Json = md.features.asJson
 
   def readFeature(json: Json): Option[FeatureMetadataV0] = json.as[FeatureMetadataV0].toOption
-
-
 }

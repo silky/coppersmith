@@ -46,7 +46,7 @@ trait FeatureSetWithTime[S] extends FeatureSet[S] {
 }
 
 trait MetadataSet[S] {
-  def name:String
+  def name: String
 
   def metadata: Iterable[Metadata[S, Value]]
 }

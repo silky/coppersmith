@@ -1,3 +1,17 @@
+//
+// Copyright 2016 Commonwealth Bank of Australia
+//
+//    Licensed under the Apache License, Version 2.0 (the "License");
+//    you may not use this file except in compliance with the License.
+//    You may obtain a copy of the License at
+//        http://www.apache.org/licenses/LICENSE-2.0
+//    Unless required by applicable law or agreed to in writing, software
+//    distributed under the License is distributed on an "AS IS" BASIS,
+//    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//    See the License for the specific language governing permissions and
+//    limitations under the License.
+//
+
 package commbank.coppersmith.tools.json
 
 import scala.util.Try
@@ -13,7 +27,7 @@ import argonaut._, Argonaut._
 object ExamplesParsingSpec extends Specification {
 
   def verifyFragment(version: Int, json: String) = {
-    val x= json.parse.fold({err => sys.error(err)}, { parsed =>
+    json.parse.fold({err => sys.error(err)}, { parsed =>
       version match {
         case 0 =>
           val converted  = MetadataJsonV0.read(parsed).getOrElse(sys.error("Value expected"))
@@ -30,14 +44,12 @@ object ExamplesParsingSpec extends Specification {
           Seq(
             Some(converted) must be_==(MetadataJson.read(parsed)),
             MetadataJsonV1.write(converted) must be_==(parsed),
-
             MetadataJson.readVersion(written) must be_== (Some(1))
           )
 
         case n => sys.error(s"Unknown version $n")
       }
     })
-    x
   }
 
 
@@ -85,17 +97,13 @@ object ExamplesParsingSpec extends Specification {
 
   private def extractJson(markdown: String): List[String] = {
     val sourceCode = """```json(?s)(.*?)```""".r
-
     (sourceCode findAllIn markdown).matchData.map {
-    _.group(1)
-  }.toList
+      _.group(1)
+    }.toList
   }
 
   def is = SpecStructure(
     SpecHeader(
       specClass = ExamplesParsingSpec.getClass,
       title = Some("Examples from documentation should parse correctly\n"))).setFragments(frags)
-
-
-
 }
