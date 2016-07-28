@@ -15,6 +15,7 @@
 package commbank.coppersmith.scalding
 
 import com.twitter.scalding.{Execution, TypedPipe}
+
 import org.joda.time.DateTime
 
 import org.scalacheck.{Arbitrary, Prop}, Arbitrary._, Prop.forAll
@@ -27,18 +28,22 @@ import au.com.cba.omnia.maestro.api._, Maestro._
 import au.com.cba.omnia.maestro.test.Records
 
 import au.com.cba.omnia.thermometer.core.{Thermometer, ThermometerRecordReader}, Thermometer._
-import au.com.cba.omnia.thermometer.fact.PathFactoids.{exists, missing, records}
+import au.com.cba.omnia.thermometer.fact.{Fact, PathFactoids}, PathFactoids._
 import au.com.cba.omnia.thermometer.hive.ThermometerHiveSpec
 
 import commbank.coppersmith._, Arbitraries._, Feature.Value
 import ScaldingArbitraries.arbHivePath
 import thrift.Eavt
 
+import TestFeatureSets.{RegularFeatures, AggregationFeatures}
+
 abstract class ScaldingSinkSpec[T <: FeatureSink] extends ThermometerHiveSpec with Records { def is = s2"""
     Writing features to an EavtSink
       writes all feature values            $featureValuesOnDiskMatch        ${tag("slow")}
       writes multiple results              $multipleValueSetsOnDiskMatch    ${tag("slow")}
       exposes features through hive        $featureValuesInHiveMatch        ${tag("slow")}
+      writes metadata                      $metadataOnDiskMatch             ${tag("slow")}
+      writes multiple metadata sets        $multipleMetadataSetsOnDiskMatch ${tag("slow")}
       commits all partitions with SUCCESS  $expectedPartitionsMarkedSuccess ${tag("slow")}
       fails if sink is committed           $writeFailsIfSinkCommitted       ${tag("slow")}
       fails to commit if sink is committed $commitFailsIfSinkCommitted      ${tag("slow")}
@@ -72,9 +77,9 @@ abstract class ScaldingSinkSpec[T <: FeatureSink] extends ThermometerHiveSpec wi
       clearData(sink)
 
       withEnvironment(path(getClass.getResource("/").toString)) {
-        executesSuccessfully(sink.write(valuePipe(vs, dateTime)))
+        executesSuccessfully(sink.write(valuePipe(vs, dateTime), List()))
         facts(
-          path(s"${tablePath(sink)}/*/*/*/*") ==> records(eavtReader, expected)
+          path(s"${tablePath(sink)}/*/*/*/part-*") ==> records(eavtReader, expected)
         )
       }
     }}.set(minTestsOk = 5)
@@ -94,12 +99,12 @@ abstract class ScaldingSinkSpec[T <: FeatureSink] extends ThermometerHiveSpec wi
           "hive.ql.metadata.Hive"
         ) {
             executesSuccessfully {
-              sink.write(valuePipe(vs1, dateTime)).zip(sink.write(valuePipe(vs2, dateTime)))
+              sink.write(valuePipe(vs1, dateTime), List()).zip(sink.write(valuePipe(vs2, dateTime), List()))
             }
           }
 
         facts(
-          path(s"${tablePath(sink)}/*/*/*/*") ==> records(eavtReader, expected)
+          path(s"${tablePath(sink)}/*/*/*/part-*") ==> records(eavtReader, expected)
         )
       }
     }}.set(minTestsOk = 5)
@@ -118,9 +123,39 @@ abstract class ScaldingSinkSpec[T <: FeatureSink] extends ThermometerHiveSpec wi
       withEnvironment(path(getClass.getResource("/").toString)) {
         val query = s"""SELECT * FROM `${databaseName(sink)}.${tableName(sink)}`"""
 
-        executesSuccessfully(sink.write(valuePipe(vs, dateTime)))
+        executesSuccessfully(sink.write(valuePipe(vs, dateTime), List()))
         val actual = executesSuccessfully(Execution.fromHive(Hive.query(query)))
         actual.toSet must_== expected.toSet
+      }
+    }}.set(minTestsOk = 5)
+
+  def metadataOnDiskMatch =
+    forAll { (vs: NonEmptyList[FeatureValue[Value]], sinkAndTime: SinkAndTime) =>  {
+      val (sink, dateTime)   = sinkAndTime
+      val (year, month, day) = FixedSinkPartition.byDay(dateTime).partitionValue
+      clearData(sink)
+
+      withEnvironment(path(getClass.getResource("/").toString)) {
+        executesSuccessfully(sink.write(valuePipe(vs, dateTime), List(RegularFeatures)))
+        facts(
+          metadataWritten(path(s"${tablePath(sink)}/year=$year/month=$month/day=$day/"),
+            List(RegularFeatures))
+        )
+      }
+    }}.set(minTestsOk = 5)
+
+  def multipleMetadataSetsOnDiskMatch =
+    forAll { (vs: NonEmptyList[FeatureValue[Value]], sinkAndTime: SinkAndTime) =>  {
+      val (sink, dateTime) = sinkAndTime
+      val (year, month, day) = FixedSinkPartition.byDay(dateTime).partitionValue
+      clearData(sink)
+
+      withEnvironment(path(getClass.getResource("/").toString)) {
+        executesSuccessfully(sink.write(valuePipe(vs, dateTime), List(RegularFeatures, AggregationFeatures)))
+        facts(
+          metadataWritten(path(s"${tablePath(sink)}/year=$year/month=$month/day=$day/"),
+            List(RegularFeatures, AggregationFeatures))
+        )
       }
     }}.set(minTestsOk = 5)
 
@@ -131,7 +166,7 @@ abstract class ScaldingSinkSpec[T <: FeatureSink] extends ThermometerHiveSpec wi
       clearData(sink)
 
       withEnvironment(path(getClass.getResource("/").toString)) {
-        val writeResult = executesSuccessfully(sink.write(valuePipe(vs, dateTime)))
+        val writeResult = executesSuccessfully(sink.write(valuePipe(vs, dateTime), List()))
 
         // Not yet committed; _SUCCESS should be missing
         facts(
@@ -158,14 +193,14 @@ abstract class ScaldingSinkSpec[T <: FeatureSink] extends ThermometerHiveSpec wi
       clearData(sink)
 
       withEnvironment(path(getClass.getResource("/").toString)) {
-        val writeResult = executesSuccessfully(sink.write(valuePipe(vs, dateTime)))
+        val writeResult = executesSuccessfully(sink.write(valuePipe(vs, dateTime), List()))
 
         writeResult.fold(
           e => failure("Unexpected write failure: " + e),
           paths => {
             executesSuccessfully(FeatureSink.commit(paths))
 
-            val secondWriteResult = executesSuccessfully(sink.write(valuePipe(vs, dateTime)))
+            val secondWriteResult = executesSuccessfully(sink.write(valuePipe(vs, dateTime), List()))
 
             // Make sure no duplicate records writen
             facts(
@@ -187,7 +222,7 @@ abstract class ScaldingSinkSpec[T <: FeatureSink] extends ThermometerHiveSpec wi
       clearData(sink)
 
       withEnvironment(path(getClass.getResource("/").toString)) {
-        val writeResult = executesSuccessfully(sink.write(valuePipe(vs, dateTime)))
+        val writeResult = executesSuccessfully(sink.write(valuePipe(vs, dateTime), List()))
 
         writeResult.fold(
           e => failure("Unexpected write failure: " + e),
@@ -200,6 +235,11 @@ abstract class ScaldingSinkSpec[T <: FeatureSink] extends ThermometerHiveSpec wi
         )
       }
     }}.set(minTestsOk = 5)
+
+  private def metadataWritten(path: Path, ems: List[MetadataSet[Any]]): Fact = {
+    val em = MetadataOutput.Json1.stringify(MetadataOutput.Json1.doOutput(ems, Set()))
+    new Path(path, s"_${ems.map(_.name).mkString("_")}_METADATA.json") ==> lines(em.split("\n").toList)
+  }
 }
 
 class HiveTextSinkSpec extends ScaldingSinkSpec[HiveTextSink[Eavt]] {

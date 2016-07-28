@@ -1,6 +1,38 @@
 Change log
 ==========
 
+## 0.22.0
+`HiveParquetSink` and `HiveTextSink` now write metadata alongside features.
+The metadata will be output with the name `_$METADATA_SET_NAMES_METADATA.json`
+(e.g. `_RegularFeatures$_METADATA.json` or
+`_RegularFeatures$_AggregationFeatures$_METADATA.json`)
+
+### Upgrading
+  - Custom sink implementations must change:
+
+    ```scala
+    def write(features: TypedPipe[(FeatureValue[Value], FeatureTime)]): WriteResult
+    ```
+
+    to
+
+    ```scala
+    def write(features: TypedPipe[(FeatureValue[Value], FeatureTime)],
+              metadataSet: List[MetadataSet[Any]]): WriteResult
+    ```
+
+  - Thermometer tests that use globs in paths, e.g.
+
+     ```scala
+     s"${sink.tablePath}/*/*/*/*"
+     ```
+
+     should be changed to
+
+     ```scala
+     s"${sink.tablePath}/*/*/*/path-*"
+     ```
+
 ## 0.21.0
 The coppersmith plugin no longer pulls in coppersmith dependencies, so
 that dependency clashes are easier to manage.

@@ -112,8 +112,8 @@ trait FeatureSetExecution {
 
   import FeatureSetExecution.{generateFeatures, generateOneToMany, generateAggregate}
   def generate(): Execution[Set[Path]] = features.fold(
-    regFeatures => generateFeatures[Source](config, generateOneToMany(regFeatures)_),
-    aggFeatures => generateFeatures[Source](config, generateAggregate(aggFeatures)_)
+    regFeatures => generateFeatures[Source](config, generateOneToMany(regFeatures)_, List(regFeatures)),
+    aggFeatures => generateFeatures[Source](config, generateAggregate(aggFeatures)_, List(aggFeatures))
   )
 }
 
@@ -137,15 +137,16 @@ object FeatureSetExecution {
 
   import SimpleFeatureJob.writeErrorFailure
   private def generateFeatures[S](
-    cfg:       Config => FeatureJobConfig[S],
-    transform: (TypedPipe[S], FeatureContext) => TypedPipe[(FeatureValue[Value], FeatureTime)]
+    cfg:          Config => FeatureJobConfig[S],
+    transform:    (TypedPipe[S], FeatureContext) => TypedPipe[(FeatureValue[Value], FeatureTime)],
+    metadataSets: List[MetadataSet[Any]]
   ): Execution[Set[Path]] = {
     for {
       conf   <- Execution.getConfig.map(cfg)
       source  = conf.featureSource
       input   = source.load
       values  = transform(input, conf.featureContext)
-      result <- conf.featureSink.write(values)
+      result <- conf.featureSink.write(values, metadataSets)
       paths  <- result.fold(writeErrorFailure(_), Execution.from(_))
     } yield paths
   }

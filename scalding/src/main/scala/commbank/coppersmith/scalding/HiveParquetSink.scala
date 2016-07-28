@@ -18,7 +18,7 @@ import com.twitter.scalding.{Execution, TupleSetter, TypedPipe}
 
 import org.apache.hadoop.fs.Path
 
-import au.com.cba.omnia.maestro.api._
+import au.com.cba.omnia.maestro.api._, Maestro._
 
 import commbank.coppersmith._, Feature._
 import Partitions.PathComponents
@@ -31,13 +31,22 @@ case class HiveParquetSink[T <: ThriftStruct : Manifest : FeatureValueEnc, P : T
   table:         HiveTable[T, (P, T)],
   partitionPath: Path
 ) extends FeatureSink {
-  def write(features: TypedPipe[(FeatureValue[Value], FeatureTime)]): FeatureSink.WriteResult = {
+  def write(features: TypedPipe[(FeatureValue[Value], FeatureTime)],
+            metadataSets: List[MetadataSet[Any]]): FeatureSink.WriteResult = {
     FeatureSink.isCommitted(partitionPath).flatMap(committed =>
       if (committed) {
         Execution.from(Left(AttemptedWriteToCommitted(partitionPath)))
       } else {
         val eavts = features.map(implicitly[FeatureValueEnc[T]].encode)
-        table.writeExecution(eavts).map(_ => Right(Set(partitionPath)))
+
+        val metadataOutput = MetadataOutput.Json1
+        val metadata = metadataOutput.stringify(metadataOutput.doOutput(metadataSets, Set()))
+        val f = new Path(partitionPath, s"_${metadataSets.map(_.name).mkString("_")}_METADATA.json")
+
+        for {
+          fe <- table.writeExecution(eavts)
+          me <- Execution.fromHdfs(Hdfs.write(f, metadata))
+        } yield Right(Set(partitionPath))
       }
     )
   }

@@ -18,6 +18,8 @@ import scala.reflect.runtime.universe.TypeTag
 
 import scalaz.syntax.std.boolean.ToBooleanOpsFromBoolean
 
+import shapeless.=:!=
+
 import au.com.cba.omnia.maestro.api.Field
 
 import Feature._
@@ -45,7 +47,7 @@ trait FeatureSetWithTime[S] extends FeatureSet[S] {
   def time(source: S, c: FeatureContext): FeatureTime = c.generationTime.getMillis
 }
 
-trait MetadataSet[S] {
+trait MetadataSet[+S] {
   def name: String
 
   def metadata: Iterable[Metadata[S, Value]]
@@ -117,16 +119,19 @@ case class AggregationFeature[S : TypeTag, SV, U, +V <: Value : TypeTag](
   import AggregationFeature.AlgebirdSemigroup
   // Note: Implementation exists here to satisfty feature signature and enable unit testing.
   // Framework should take advantage of aggregators that can run natively on the underlying plumbing.
-  def toFeature(namespace: Namespace) = new Feature[(EntityId, Iterable[S]), Value](
-    Metadata(namespace, name, description, featureType, range)
-  ) {
-    def generate(s: (EntityId, Iterable[S])): Option[FeatureValue[Value]] = {
-      val (entity, source) = s
-      val sourceView = source.toList.collect(view).toNel
-      sourceView.flatMap(nonEmptySource => {
-        val aggregated: U = nonEmptySource.foldMap1(aggregator.prepare)(aggregator.semigroup.toScalaz)
-        aggregator.present(aggregated).map(FeatureValue(entity, name, _))
-      })
+  def toFeature(namespace: Namespace) = {
+    new Feature[(EntityId, Iterable[S]), Value](
+      Metadata(namespace, name, description, featureType, range)(implicitly[TypeTag[(EntityId, Iterable[S])]],
+        implicitly[TypeTag[V]], implicitly[=:!=[V, Nothing]])
+    ) {
+      def generate(s: (EntityId, Iterable[S])): Option[FeatureValue[Value]] = {
+        val (entity, source) = s
+        val sourceView = source.toList.collect(view).toNel
+        sourceView.flatMap(nonEmptySource => {
+          val aggregated: U = nonEmptySource.foldMap1(aggregator.prepare)(aggregator.semigroup.toScalaz)
+          aggregator.present(aggregated).map(FeatureValue(entity, name, _))
+        })
+      }
     }
   }
 }

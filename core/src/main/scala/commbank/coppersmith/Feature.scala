@@ -198,7 +198,7 @@ object Feature {
   // Hold references to basic source and value type instances instead of requiring
   // TagType instances, as the latter can cause serialisation regressions in some
   // cases where the metadata is closed over.
-  case class Metadata[S, +V <: Value] private(
+  case class Metadata[+S, +V <: Value] private(
     namespace:   Namespace,
     name:        Name,
     description: Description,
