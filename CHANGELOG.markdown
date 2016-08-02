@@ -30,7 +30,7 @@ The metadata will be output with the name `_$METADATA_SET_NAMES_METADATA.json`
      should be changed to
 
      ```scala
-     s"${sink.tablePath}/*/*/*/path-*"
+     s"${sink.tablePath}/*/*/*/part-*"
      ```
 
 ## 0.21.0

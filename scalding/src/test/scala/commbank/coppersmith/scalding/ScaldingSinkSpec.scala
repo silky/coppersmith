@@ -238,7 +238,7 @@ abstract class ScaldingSinkSpec[T <: FeatureSink] extends ThermometerHiveSpec wi
 
   private def metadataWritten(path: Path, ems: List[MetadataSet[Any]]): Fact = {
     val em = MetadataOutput.Json1.stringify(MetadataOutput.Json1.doOutput(ems, Set()))
-    new Path(path, s"_${ems.map(_.name).mkString("_")}_METADATA.json") ==> lines(em.split("\n").toList)
+    new Path(path, ems.map(_.name).mkString("_", "_", "_METADATA.json")) ==> lines(em.split("\n").toList)
   }
 }
 
