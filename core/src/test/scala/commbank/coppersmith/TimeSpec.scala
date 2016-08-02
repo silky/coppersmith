@@ -19,6 +19,8 @@ import java.util.concurrent.TimeUnit.MILLISECONDS
 import org.joda.time.{Period, DateTimeZone, LocalDate, DateTime}
 import org.joda.time.format.DateTimeFormat
 
+import scalaz.scalacheck.ScalazProperties.order
+
 import org.specs2.{ScalaCheck, Specification}
 
 import org.scalacheck.Prop._
@@ -27,13 +29,16 @@ import commbank.coppersmith.Arbitraries._
 import commbank.coppersmith.util.{DatePeriod, Timestamp, Datestamp}
 
 object TimeSpec extends Specification with ScalaCheck { def is = s2"""
-  Parse valid date string $parseDate
-  Not parse invalid date string $parseInvalidDate
-  Parse valid time string $parseValidTime
-  Not parse invalid time string $parseInvalidTime
-  Print valid date string $printDate
-  Print valid time string $printTime
+  Parse valid date string            $parseDate
+  Not parse invalid date string      $parseInvalidDate
+  Parse valid time string            $parseValidTime
+  Not parse invalid time string      $parseInvalidTime
+  Print valid date string            $printDate
+  Print valid time string            $printTime
   Calculate correct date differences $dateDiff
+  Order dates correctly              $dateOrder
+  Order times correctly              $timeOrder
+  Order similar times correctly      $timeZoneOrder
 """
 
   def parseDate = forAll { (dateTime: DateTime) => {
@@ -195,5 +200,24 @@ object TimeSpec extends Specification with ScalaCheck { def is = s2"""
     val p = new Period(ld1, ld2)
 
     dp must_== DatePeriod(p.getYears, p.getMonths, p.getDays)
+  }
+
+  def dateOrder = forAll { (d1: Datestamp, d2: Datestamp) => {
+    val ld1 = new LocalDate(d1.year, d1.month, d1.day)
+    val ld2 = new LocalDate(d2.year, d2.month, d2.day)
+    ld1.compareTo(ld2) must_== implicitly[Ordering[Datestamp]].compare(d1, d2)
+  }}
+
+  def timeOrder = order.laws[Timestamp]
+
+  def timeZoneOrder = {
+    val utc = Timestamp.unsafeParseWithMillis("2000-06-06T10:00:00.000+00:00")
+    val aest = Timestamp.unsafeParseWithMillis("2000-06-06T20:00:00.000+10:00")
+    val unknownTimezone = Timestamp.unsafeParseWithMillis("2000-06-06T20:00:00.000-00:00")
+    Seq(
+      utc must beLessThan(aest),
+      utc must beLessThan(unknownTimezone),
+      utc must beEqualTo(utc)
+    )
   }
 }
