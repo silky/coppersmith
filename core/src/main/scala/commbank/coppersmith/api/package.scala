@@ -57,6 +57,9 @@ package object api extends GeneratedJoinTypeInstances with SourceBinderInstances
   type SourceBinder[DS, S, U, P[_]] = commbank.coppersmith.SourceBinder[DS, S, U, P]
   type Value = commbank.coppersmith.Feature.Value
 
+  type Datestamp = commbank.coppersmith.util.Datestamp
+  type Timestamp = commbank.coppersmith.util.Timestamp
+
   // Maestro dependencies below
   type JobStatus = au.com.cba.omnia.maestro.api.JobStatus
   type Fields[A] = au.com.cba.omnia.maestro.macros.FieldsMacro.Fields[A]
@@ -83,6 +86,9 @@ package object api extends GeneratedJoinTypeInstances with SourceBinderInstances
   val MinMaxRange = Value.MinMaxRange
   val SetRange = Value.SetRange
   val Patterns = commbank.coppersmith.Patterns
+
+  val Datestamp = commbank.coppersmith.util.Datestamp
+  val Timestamp = commbank.coppersmith.util.Timestamp
 
   //Maestro dependencies below
   lazy val JobFinished =  au.com.cba.omnia.maestro.scalding.JobFinished
