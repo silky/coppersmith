@@ -19,14 +19,12 @@ import java.util.concurrent.TimeUnit.MILLISECONDS
 import org.joda.time.{Period, DateTimeZone, LocalDate, DateTime}
 import org.joda.time.format.DateTimeFormat
 
-import scalaz.scalacheck.ScalazProperties.order
-
 import org.specs2.{ScalaCheck, Specification}
 
 import org.scalacheck.Prop._
 
 import commbank.coppersmith.Arbitraries._
-import commbank.coppersmith.util.{DatePeriod, Timestamp, Datestamp}
+import commbank.coppersmith.util.{DatePeriod, Timestamp, Datestamp}, Timestamp.Offset
 
 object TimeSpec extends Specification with ScalaCheck { def is = s2"""
   Parse valid date string            $parseDate
@@ -37,8 +35,7 @@ object TimeSpec extends Specification with ScalaCheck { def is = s2"""
   Print valid time string            $printTime
   Calculate correct date differences $dateDiff
   Order dates correctly              $dateOrder
-  Order times correctly              $timeOrder
-  Order similar times correctly      $timeZoneOrder
+  Order times correctly              ${all(timeOrder, equalMillisTimeOrder, timeZoneOrder)}
 """
 
   def parseDate = forAll { (dateTime: DateTime) => {
@@ -208,7 +205,19 @@ object TimeSpec extends Specification with ScalaCheck { def is = s2"""
     ld1.compareTo(ld2) must_== implicitly[Ordering[Datestamp]].compare(d1, d2)
   }}
 
-  def timeOrder = order.laws[Timestamp]
+  def timeOrder = forAll { (t1: Timestamp, t2: Timestamp) => {
+    (t1, t2) match {
+      case (Timestamp(m1, o1), Timestamp(m2, o2)) if m1 > m2 => t1 must beGreaterThan(t2)
+      case (Timestamp(m1, o1), Timestamp(m2, o2)) if m1 == m2 =>
+        implicitly[Ordering[Timestamp]].compare(t1, t2) must_== implicitly[Ordering[Offset]].compare(o1, o2)
+      case (Timestamp(m1, o1), Timestamp(m2, o2)) if m1 < m2 => t1 must beLessThan(t2)
+    }
+  }}
+
+  def equalMillisTimeOrder = forAll { (t: Timestamp, o: Offset) => {
+    implicitly[Ordering[Timestamp]].compare(t, t.copy(offset = o)) must_==
+      implicitly[Ordering[Offset]].compare(t.offset, o)
+  }}
 
   def timeZoneOrder = {
     val utc = Timestamp.unsafeParseWithMillis("2000-06-06T10:00:00.000+00:00")
@@ -216,8 +225,7 @@ object TimeSpec extends Specification with ScalaCheck { def is = s2"""
     val unknownTimezone = Timestamp.unsafeParseWithMillis("2000-06-06T20:00:00.000-00:00")
     Seq(
       utc must beLessThan(aest),
-      utc must beLessThan(unknownTimezone),
-      utc must beEqualTo(utc)
+      utc must beLessThan(unknownTimezone)
     )
   }
 }
