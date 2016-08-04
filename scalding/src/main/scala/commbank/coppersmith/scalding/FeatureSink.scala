@@ -156,7 +156,7 @@ case class HiveTextSink[
 
     val metadataOutput = MetadataOutput.Json1
     val metadata = metadataOutput.stringify(metadataOutput.doOutput(metadataSets, Set()))
-    val metadataFileName = metadataSets.map(_.name).mkString("_", "_", "_METADATA.json")
+    val metadataFileName = metadataSets.map(_.name).mkString("_feature_metadata/_", "_", "_METADATA.V1.json")
 
     val result = HiveSupport.writeTextTable(hiveConfig, textPipe)
     result.flatMap {

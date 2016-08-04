@@ -79,7 +79,7 @@ abstract class ScaldingSinkSpec[T <: FeatureSink] extends ThermometerHiveSpec wi
       withEnvironment(path(getClass.getResource("/").toString)) {
         executesSuccessfully(sink.write(valuePipe(vs, dateTime), List()))
         facts(
-          path(s"${tablePath(sink)}/*/*/*/part-*") ==> records(eavtReader, expected)
+          path(s"${tablePath(sink)}/*/*/*/[^_]*") ==> records(eavtReader, expected)
         )
       }
     }}.set(minTestsOk = 5)
@@ -104,7 +104,7 @@ abstract class ScaldingSinkSpec[T <: FeatureSink] extends ThermometerHiveSpec wi
           }
 
         facts(
-          path(s"${tablePath(sink)}/*/*/*/part-*") ==> records(eavtReader, expected)
+          path(s"${tablePath(sink)}/*/*/*/[^_]*") ==> records(eavtReader, expected)
         )
       }
     }}.set(minTestsOk = 5)
@@ -204,7 +204,7 @@ abstract class ScaldingSinkSpec[T <: FeatureSink] extends ThermometerHiveSpec wi
 
             // Make sure no duplicate records writen
             facts(
-              path(s"${tablePath(sink)}/*/*/*/part-*") ==> records(eavtReader, expected)
+              path(s"${tablePath(sink)}/*/*/*/[^_]*") ==> records(eavtReader, expected)
             )
 
             secondWriteResult must beLeft.like {
@@ -238,7 +238,7 @@ abstract class ScaldingSinkSpec[T <: FeatureSink] extends ThermometerHiveSpec wi
 
   private def metadataWritten(path: Path, ems: List[MetadataSet[Any]]): Fact = {
     val em = MetadataOutput.Json1.stringify(MetadataOutput.Json1.doOutput(ems, Set()))
-    new Path(path, ems.map(_.name).mkString("_", "_", "_METADATA.json")) ==> lines(em.split("\n").toList)
+    new Path(path, ems.map(_.name).mkString("_feature_metadata/_", "_", "_METADATA.V1.json")) ==> lines(em.split("\n").toList)
   }
 }
 

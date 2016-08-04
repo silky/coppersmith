@@ -123,7 +123,7 @@ class ScaldingJobSpec extends ThermometerHiveSpec with Records { def is = s2"""
         executesOk(SimpleFeatureJob.generate((_: Config) => cfg, RegularFeatures), defaultArgs)
         facts(successFlagsWritten(expected, jobTime): _*)
         facts(metadataWritten(expected, List(RegularFeatures)): _*)
-        facts(path(s"${sink.tablePath}/*/*/*/part-*") ==> records(eavtReader, expected))
+        facts(path(s"${sink.tablePath}/*/*/*/[^_]*") ==> records(eavtReader, expected))
 
       }
     }}.set(minTestsOk = 5)
@@ -138,7 +138,7 @@ class ScaldingJobSpec extends ThermometerHiveSpec with Records { def is = s2"""
         executesOk(SimpleFeatureJob.generate((_: Config) => cfg, AggregationFeatures), defaultArgs)
         facts(successFlagsWritten(expected, jobTime): _*)
         facts(metadataWritten(expected, List(AggregationFeatures)): _*)
-        facts(path(s"${sink.tablePath}/*/*/*/part-*") ==> records(eavtReader, expected))
+        facts(path(s"${sink.tablePath}/*/*/*/[^_]*") ==> records(eavtReader, expected))
       }
     }}.set(minTestsOk = 5)
 
@@ -157,7 +157,7 @@ class ScaldingJobSpec extends ThermometerHiveSpec with Records { def is = s2"""
         executesOk(SimpleFeatureJob.generate(job), defaultArgs)
         facts(successFlagsWritten(expected, jobTime): _*)
         facts(metadataWritten(expected, List(RegularFeatures, AggregationFeatures)): _*)
-        facts(path(s"${sink.tablePath}/*/*/*/part-*") ==> records(eavtReader, expected))
+        facts(path(s"${sink.tablePath}/*/*/*/[^_]*") ==> records(eavtReader, expected))
       }
     }}.set(minTestsOk = 5)
 
@@ -177,7 +177,7 @@ class ScaldingJobSpec extends ThermometerHiveSpec with Records { def is = s2"""
         executesOk(SimpleFeatureJob.generate(job), defaultArgs)
         facts(successFlagsWritten(expected, jobTime): _*)
         facts(metadataWritten(expected, List(RegularFeatures, AggregationFeatures)): _*)
-        facts(path(s"${sink.tablePath}/*/*/*/part-*") ==> records(eavtReader, expected))
+        facts(path(s"${sink.tablePath}/*/*/*/[^_]*") ==> records(eavtReader, expected))
       }
     }}.set(minTestsOk = 5)
 
@@ -198,7 +198,7 @@ class ScaldingJobSpec extends ThermometerHiveSpec with Records { def is = s2"""
       em                 <- expectedMetadataSets
       expectedMetadata   =  MetadataOutput.Json1.stringify(MetadataOutput.Json1.doOutput(List(em), Set()))
     } yield {
-      path(s"${sink.tablePath}/year=$year/month=$month/day=$day/_${em.name}_METADATA.json") ==>
+      path(s"${sink.tablePath}/year=$year/month=$month/day=$day/_feature_metadata/_${em.name}_METADATA.V1.json") ==>
         lines(expectedMetadata.split("\n").toList)
     }
   }

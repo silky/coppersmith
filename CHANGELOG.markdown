@@ -3,9 +3,9 @@ Change log
 
 ## 0.22.0
 `HiveParquetSink` and `HiveTextSink` now write metadata alongside features.
-The metadata will be output with the name `_$METADATA_SET_NAMES_METADATA.json`
-(e.g. `_RegularFeatures$_METADATA.json` or
-`_RegularFeatures$_AggregationFeatures$_METADATA.json`)
+The metadata will be output in `_feature_metadata/` with the name
+`_${METADATA_SET_NAMES}_METADATA.V1.json` (e.g. `_RegularFeatures$_METADATA.V1.json`
+or `_RegularFeatures$_AggregationFeatures$_METADATA.V1.json`)
 
 ### Upgrading
   - Custom sink implementations must change:
@@ -30,7 +30,7 @@ The metadata will be output with the name `_$METADATA_SET_NAMES_METADATA.json`
      should be changed to
 
      ```scala
-     s"${sink.tablePath}/*/*/*/part-*"
+     s"${sink.tablePath}/*/*/*/[^_]*"
      ```
 
 ## 0.21.0

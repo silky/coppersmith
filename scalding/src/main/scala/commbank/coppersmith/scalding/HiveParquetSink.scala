@@ -41,7 +41,7 @@ case class HiveParquetSink[T <: ThriftStruct : Manifest : FeatureValueEnc, P : T
 
         val metadataOutput = MetadataOutput.Json1
         val metadata = metadataOutput.stringify(metadataOutput.doOutput(metadataSets, Set()))
-        val f = new Path(partitionPath, metadataSets.map(_.name).mkString("_", "_", "_METADATA.json"))
+        val f = new Path(partitionPath, metadataSets.map(_.name).mkString("_feature_metadata/_", "_", "_METADATA.V1.json"))
 
         for {
           fe <- table.writeExecution(eavts)
