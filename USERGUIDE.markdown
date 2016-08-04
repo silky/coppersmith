@@ -64,7 +64,7 @@ Add the coppersmith plugin to your SBT configuration. That is, inside
 coppersmith you want to use. The plugin enables the publishing of feature metadata.
 
 The latest version of coppersmith can be identified by clicking
-[here](http://commbank.artifactoryonline.com/commbank/api/search/latestVersion?g=au.com.cba.omnia&a=coppersmith).
+[here](http://commbank.artifactoryonline.com/commbank/api/search/latestVersion?g=au.com.cba.omnia&a=coppersmith-core_2.11).
 
 ### The `Feature` class
 
