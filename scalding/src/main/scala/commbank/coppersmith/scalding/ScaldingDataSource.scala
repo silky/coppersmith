@@ -49,7 +49,7 @@ trait ScaldingDataSource[S] extends DataSource[S, TypedPipe] {
   def distinctBy[O : Ordering](fn: S => O) = TypedPipeSource(load.distinctBy(fn))
 }
 
-case class DataSourceView[T, S](underlying: ScaldingDataSource[T])(implicit tToS: T => S)
+case class DataSourceView[T, S](underlying: DataSource[T, TypedPipe])(implicit tToS: T => S)
     extends ScaldingDataSource[S] {
   def load = underlying.load.map(tToS)
 }
