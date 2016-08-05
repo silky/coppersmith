@@ -39,8 +39,15 @@ case class HiveParquetSink[T <: ThriftStruct : Manifest : FeatureValueEnc, P : T
       } else {
         val eavts = features.map(implicitly[FeatureValueEnc[T]].encode)
 
+        // Thermometer tests do not pick up the objects using ObjectFinder. This should be revisited at
+        // some stage.
+        val allConforms: Set[Conforms[_, _]] =
+          Set(ContinuousDecimal, ContinuousFloatingPoint, ContinuousIntegral, DiscreteIntegral,
+            OrdinalDecimal, OrdinalFloatingPoint, OrdinalIntegral, OrdinalStr, NominalBool, NominalIntegral,
+            NominalStr)
+
         val metadataOutput = MetadataOutput.Json1
-        val metadata = metadataOutput.stringify(metadataOutput.doOutput(metadataSets, Set()))
+        val metadata = metadataOutput.stringify(metadataOutput.doOutput(metadataSets, allConforms))
         val f = new Path(partitionPath, metadataSets.map(_.name).mkString("_feature_metadata/_", "_", "_METADATA.V1.json"))
 
         for {

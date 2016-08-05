@@ -31,7 +31,7 @@ import au.com.cba.omnia.thermometer.core.{Thermometer, ThermometerRecordReader},
 import au.com.cba.omnia.thermometer.fact.{Fact, PathFactoids}, PathFactoids._
 import au.com.cba.omnia.thermometer.hive.ThermometerHiveSpec
 
-import commbank.coppersmith._, Arbitraries._, Feature.Value
+import commbank.coppersmith._, Arbitraries._, Feature._
 import ScaldingArbitraries.arbHivePath
 import thrift.Eavt
 
@@ -237,7 +237,14 @@ abstract class ScaldingSinkSpec[T <: FeatureSink] extends ThermometerHiveSpec wi
     }}.set(minTestsOk = 5)
 
   private def metadataWritten(path: Path, ems: List[MetadataSet[Any]]): Fact = {
-    val em = MetadataOutput.Json1.stringify(MetadataOutput.Json1.doOutput(ems, Set()))
+    // Thermometer tests do not pick up the objects using ObjectFinder. This should be revisited at
+    // some stage.
+    val allConforms: Set[Conforms[_, _]] =
+      Set(ContinuousDecimal, ContinuousFloatingPoint, ContinuousIntegral, DiscreteIntegral,
+        OrdinalDecimal, OrdinalFloatingPoint, OrdinalIntegral, OrdinalStr, NominalBool, NominalIntegral,
+        NominalStr)
+
+    val em = MetadataOutput.Json1.stringify(MetadataOutput.Json1.doOutput(ems, allConforms))
     new Path(path, ems.map(_.name).mkString("_feature_metadata/_", "_", "_METADATA.V1.json")) ==> lines(em.split("\n").toList)
   }
 }

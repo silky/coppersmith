@@ -30,7 +30,7 @@ import au.com.cba.omnia.thermometer.fact.Fact
 import au.com.cba.omnia.thermometer.fact.PathFactoids.{exists, records, lines}
 import au.com.cba.omnia.thermometer.hive.ThermometerHiveSpec
 
-import commbank.coppersmith._
+import commbank.coppersmith._, Feature._
 import Arbitraries._
 
 import commbank.coppersmith.thrift.Eavt
@@ -193,10 +193,18 @@ class ScaldingJobSpec extends ThermometerHiveSpec with Records { def is = s2"""
                               expectedMetadataSets: List[MetadataSet[Any]]): Seq[Fact] = {
     val partition          = sink.partition.underlying
     val expectedPartitions = expectedValues.map(partition.extract(_)).toSet.toSeq
+
+    // Thermometer tests do not pick up the objects using ObjectFinder. This should be revisited at
+    // some stage.
+    val allConforms: Set[Conforms[_, _]] =
+      Set(ContinuousDecimal, ContinuousFloatingPoint, ContinuousIntegral, DiscreteIntegral,
+        OrdinalDecimal, OrdinalFloatingPoint, OrdinalIntegral, OrdinalStr, NominalBool, NominalIntegral,
+        NominalStr)
+
     for {
       (year, month, day) <- expectedPartitions
       em                 <- expectedMetadataSets
-      expectedMetadata   =  MetadataOutput.Json1.stringify(MetadataOutput.Json1.doOutput(List(em), Set()))
+      expectedMetadata   =  MetadataOutput.Json1.stringify(MetadataOutput.Json1.doOutput(List(em), allConforms))
     } yield {
       path(s"${sink.tablePath}/year=$year/month=$month/day=$day/_feature_metadata/_${em.name}_METADATA.V1.json") ==>
         lines(expectedMetadata.split("\n").toList)
