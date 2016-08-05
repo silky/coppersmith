@@ -15,7 +15,7 @@
 package commbank.coppersmith.scalding
 
 import com.twitter.algebird.Aggregator
-import com.twitter.scalding.typed.{PartitionedTextLine, TypedPipe}
+import com.twitter.scalding.typed.{PartitionedTextLine, TypedPipe, TypedPipeFactory}
 import com.twitter.scalding.{Execution, TupleConverter, TupleSetter}
 
 import org.apache.hadoop.fs.Path
@@ -75,10 +75,11 @@ object HiveSupport {
       val sink = PartitionedTextLine(tempDir.toString, partition.pattern);
       {
         for {
-                         // Use append semantics for now as an interim fix to address #97
-                         // Check if this is still relevant once #137 is addressed
-          written     <- partitioned.writeThrough(sink).withSubConfig(createUniqueFilenames(_))
-          oPValues    <- written.aggregate(Aggregator.toSet.composePrepare(_._1)).toOptionExecution
+          oPValues    <- TypedPipeFactory { (flowDef, mode) => partitioned.write(sink)(flowDef, mode) }
+                           .aggregate(Aggregator.toSet.composePrepare(_._1)).toOptionExecution
+                           // Use append semantics for now as an interim fix to address #97
+                           // Check if this is still relevant once #137 is addressed
+                           .withSubConfig(createUniqueFilenames(_))
           oPartitions  = oPValues.map(_.toSet.toList).toList.flatten.toNel.map(pValues =>
                            Partitions(conf.partition, pValues.head, pValues.tail: _*)
                          )
