@@ -33,7 +33,8 @@ import UserGuideArbitraries.arbUser
 object DistinctFeaturesSpec extends ThermometerHiveSpec { def is = s2"""
   DistinctFeaturesJob must return expected values  $test  ${tag("slow")}
 """
-  def test = forAll { (users: Seq[User]) => {
+  // nonEmpty: If data.txt is zero length, hadoop errors with "No input paths specified in job".
+  def test = forAll { (users: Seq[User]) => users.nonEmpty ==> {
     writeRecords[User](s"$dir/user/data/users/data.txt", users, "|")
     val expectedLength = users.groupBy(_.id).keys.size
 
